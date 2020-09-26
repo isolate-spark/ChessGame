@@ -1,12 +1,11 @@
 require 'pp'
-require './lib/game_pieces.rb'
+require_relative 'pieces'
 
 class Board
   attr_accessor :board
   def initialize
     @board = {}
   end
-
 
 
   def build_game(piece, row, col)
@@ -49,6 +48,7 @@ class GamePlay < Board
   def piece_locator
     puts "Type the row # followed by the column # to select a piece to move."
     coords = gets.chomp.split('').map(&:to_i)
+    return false if coords.length != 2
     row = coords[0]
     col = coords[1]
     piece = @board.fetch([row, col])
@@ -76,11 +76,15 @@ class GamePlay < Board
     puts "Type the row # followed by the column # you want to move the piece to."
     puts confirmed_piece
     coords = gets.chomp.split('').map(&:to_i)
+    return false if coords.length != 2
     r = coords[0]
     c = coords[1]
     previous = @board.key(confirmed_piece)
     if valid?(previous, confirmed_piece, r, c)
-      @board[[r, c]] = [confirmed_piece]
+      @board[previous] = EmptyChecker.new('replace')
+      @board[[r, c]] = confirmed_piece
+    else
+      false
     end
   end
 
@@ -93,6 +97,7 @@ class GamePlay < Board
     while piece_move == false
       piece_move = piece_mover(piece)
     end
+    print_board
   end
 end
 
@@ -101,12 +106,61 @@ def shortest_path(piece, start, finish)
   steps = 0
 end
 
-game = GamePlay.new
-game.fill_board
-knight = Knight.new('Knight 1', 'white', '♘')
-game.build_game(knight, 1, 2)
-pp game.board
-game.print_board
-game.play_turn
-game.print_board
+def make_pawns(g, c)
+  n = 1
+  a = 7
+  a = 2 if c == 'black'
+  8.times do
+    pn = Pawn.new("Pawn#{n}#{c[0]}", c)
+    g.build_game(pn, a, n)
+    n += 1
+  end
+end
 
+def new_game
+  game = GamePlay.new
+  game.fill_board
+
+  make_pawns(game, 'white')
+  rook1w = Rook.new('rook1w', 'white')
+  rook2w = Rook.new('rook2w', 'white')
+  knight2w = Knight.new('Knight2w', 'white')
+  knight1w = Knight.new('Knight1w', 'white')
+  knight2w = Knight.new('Knight2w', 'white')
+  bishop1w = Bishop.new('Bishop1w', 'white')
+  bishop2w = Bishop.new('Bishop2w', 'white')
+  queenw = Queen.new('Queenw', 'white')
+  kingw = King.new('Kingw', 'white')
+  game.build_game(rook1w, 8, 1)
+  game.build_game(rook2w, 8, 8)
+  game.build_game(knight1w, 8, 2)
+  game.build_game(knight2w, 8, 7)
+  game.build_game(bishop1w, 8, 3)
+  game.build_game(bishop2w, 8, 6)
+  game.build_game(queenw, 8, 4)
+  game.build_game(kingw, 8, 5)
+
+  make_pawns(game, 'black')
+  rook1b = Rook.new('rook1b', 'black')
+  rook2b = Rook.new('rook2b', 'black')
+  knight1b = Knight.new('Knight1b', 'black')
+  knight2b = Knight.new('Knight2b', 'black')
+  bishop1b = Bishop.new('Bishop1w', 'black')
+  bishop2b = Bishop.new('Bishop2w', 'black')
+  queenb = Queen.new('Queenb', 'black')
+  kingb = King.new('Kingb', 'black')
+  game.build_game(rook1b, 1, 1)
+  game.build_game(rook2b, 1, 8)
+  game.build_game(knight1b, 1, 2)
+  game.build_game(knight2b, 1, 7)
+  game.build_game(bishop1b, 1, 3)
+  game.build_game(bishop2b, 1, 6)
+  game.build_game(queenb, 1, 4)
+  game.build_game(kingb, 1, 5)
+
+  pp game.board
+  game.print_board
+  game.play_turn
+end
+
+new_game
